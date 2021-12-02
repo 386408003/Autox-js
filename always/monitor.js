@@ -17,7 +17,7 @@ function printNotification(notification) {
 
   // 如果是收到了邮件，并且邮件标题带有 [自动] 表示有应用忘记打卡了
   let autoMark = "[自动]";
-  let title = JSON.stringify(notification.getText());
+  let title = notification.getText();
   if ("com.tencent.androidqqmail" == notification.getPackageName() && title.indexOf(autoMark) != -1) {
     title = title.substring(title.indexOf(autoMark) + autoMark.length);
     let path = "/storage/emulated/0/脚本/" + title + ".js";

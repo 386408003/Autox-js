@@ -1,9 +1,9 @@
 /* --------版本 v0.03 根据个人情况修改以下内容---------- */
 
 // 引入发邮件的组件
-var mail = require('./utils/mail.js');
+var mail = require('/storage/emulated/0/脚本/utils/mail.js');
 // 引入解锁组件
-var unlock = require('./utils/unlock.js');
+var unlock = require('/storage/emulated/0/脚本/utils/unlock.js');
 
 // 设置屏幕常亮时间，默认 45 分钟
 var SCREEN_DIM_TIME = 45 * 60 * 1000;
@@ -23,35 +23,32 @@ var point1 = { x: 150, y: 830 };
 // 播放按钮位置
 var point2 = { x: 150, y: 1080 };
 
-/* --------版本 v0.03 根据个人情况修改以上内容---------- */
-
-
 // 没有无障碍时候会提示无障碍模式的开启，并且开启之后,会接着继续运行。
 auto.waitFor();
 var height = device.height;
 var width = device.width;
 // 设置脚本坐标点击所适合的屏幕宽高。如果脚本运行时，屏幕宽度不一致会自动放缩坐标。
 setScreenMetrics(width, height);
-
 //停掉除了本脚本以外的正在运行的脚本
 killOthersAlive();
-
 // 设置悬浮窗变量
 setFloatWindow();
-
 // 启用按键监听，按下音量下键脚本结束
 keyDetector();
-
 // 保持屏幕常亮，默认 35 分钟
 device.keepScreenDim(SCREEN_DIM_TIME);
-
 // 解锁屏幕
 unlock.unlock("123456");
+
+/* --------版本 v0.03 根据个人情况修改以上内容---------- */
+
+
 // 开始打卡
 watchVideo();
 
-
-// 打卡主方法
+/**
+ * 打卡主方法
+ */
 function watchVideo() {
   launchApp("丁香妈妈");
   sleep(LONG_TIME);
@@ -59,21 +56,22 @@ function watchVideo() {
   // 关闭广告弹窗
   if (id("close_dialog").exists()) {
     id("close_dialog").findOnce().click();
-    sleep(NANO_TIME);
   }
 
   // 点击导航栏 课程 一栏
   let main_course = id("main_course").findOne(SHORT_TIME);
   if (main_course != null) {
     main_course.click();
-    sleep(LONG_TIME);
+    sleep(SHORT_TIME);
     // 按照位置点击我的打卡
     click(point1.x, point1.y);
     sleep(SHORT_TIME);
+  } else {
+    toast_console("未找到课程，请检查网络！", true);
   }
 
   // 点击 全部课程 按钮
-  let allCourse = text("全部课程").findOne(SHORT_TIME);
+  let allCourse = text("全部课程").findOnce();
   if (allCourse != null) {
     allCourse.click();
     sleep(SHORT_TIME);
@@ -85,21 +83,29 @@ function watchVideo() {
     playCourse("身体认知童谣", "头发 ");
     playCourse("食物认知童谣", "强壮猪肝", "红肉");
   } else {
-    toast("未找到课程，请确认是否登陆！");
+    toast_console("未找到全部课程，请确认是否登陆！", true);
   }
   // 打卡成功
   if(FINISH_MARK == 0) {
-    toast("所有课程已打卡完毕！");
+    toast_console("所有课程已打卡完毕！", true);
     mail.send("丁香妈妈", "绘本课程打卡完成！\n其他5门课程都已打卡完成！", "[打卡完成]");
     sleep(SHORT_TIME);
   }
   closeApp();
 }
 
-// 播放课程
+/**
+ * 播放课程
+ * @param {string} courseType 课程类型
+ * @param {string} courseName 课程名字
+ * @param {string} parentName 课程上级菜单名字
+ * @returns 
+ */
 function playCourse(courseType, courseName, parentName) {
+  toast_console(courseType + "：开始打卡");
   bean = text(courseType).findOnce();
   if(bean.parent().parent().parent().child(5).text() == "今日已打卡") {
+    toast_console(courseType + "：今日已打卡");
     return FINISH_MARK--;
   }
   bean.click();
@@ -111,6 +117,7 @@ function playCourse(courseType, courseName, parentName) {
     let py = id("com.dxy.gaia:id/story_book_image_item").findOnce().bounds().centerY();
     click(px, py);
     sleep(PLAY_COURSE_TIME * 3);
+    toast_console(courseType + "：打卡结束");
     // 返回选择课程页面
     switchCourse();
     return FINISH_MARK--;
@@ -130,11 +137,14 @@ function playCourse(courseType, courseName, parentName) {
   click(point2.x, point2.y);
   sleep(PLAY_COURSE_TIME);
   FINISH_MARK--;
+  toast_console(courseType + "：打卡结束");
   // 返回选择课程页面
   switchCourse();
 }
 
-// 切换课程
+/**
+ * 点击两下返回，切换课程
+ */
 function switchCourse() {
   back();
   sleep(SHORT_TIME / 2);
@@ -142,50 +152,9 @@ function switchCourse() {
   sleep(SHORT_TIME / 2);
 }
 
-// 启用按键监听，按下音量下键脚本结束
-function keyDetector() {
-  // 在子进程中运行监听事件
-  threads.start(function () {
-    events.observeKey();
-    events.on("key", function (code, event) {
-      var keyCodeStr = event.keyCodeToString(code);
-      // log(code);
-      // log(keyCodeStr);
-      if (keyCodeStr == "KEYCODE_VOLUME_DOWN") {
-        closeScript("检测到音量下键，脚本终止。");
-      }
-    });
-  });
-}
-
-// 设置悬浮窗变量
-function setFloatWindow() {
-  //启用悬浮窗，用于提示，为没有音量下键的手机提供了关闭悬浮窗可以直接停止脚本的方式
-  var win = floaty.window(
-    <frame gravity="left">
-      <text id="text" textColor="black" bg='#ffffff'>★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本</text>
-    </frame>
-  );
-  // 悬浮窗不会自动关闭
-  setInterval(() => { }, 1000);
-  win.setPosition(700, height / 4);
-  win.setSize(400, 300);
-  // 悬浮窗可调整大小
-  win.setAdjustEnabled(true);
-  // 退出悬浮窗即结束脚本
-  // win.exitOnClose();
-  // 长按悬浮窗内文字结束脚本
-  win.text.longClick(() => {
-    // try...catch把exit()函数的异常捕捉，则脚本不会立即停止，仍会运行几行后再停止
-    try {
-      closeScript("检测到长按悬浮窗文字，脚本终止。");
-    } catch (err) { }
-    // 直接exit()的话坚持不到return的时候
-    return true;
-  });
-}
-
-// 停掉除了本脚本以外的正在运行的脚本
+/**
+ * 停掉除了本脚本以及 always 目录以外的正在运行的脚本
+ */
 function killOthersAlive() {
   // 获取全部正在运行的脚本引擎
   var allEngines = engines.all();
@@ -198,7 +167,56 @@ function killOthersAlive() {
   }
 }
 
-// 关闭应用
+/**
+ * 设置并开启悬浮窗，退出悬浮窗时结束脚本
+ */
+ function setFloatWindow() {
+  //启用悬浮窗，用于提示，为没有音量下键的手机提供了关闭悬浮窗可以直接停止脚本的方式
+  var win = floaty.window(
+    <frame gravity="left">
+      <text id="text" textColor="black" bg='#ffffff'>★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本</text>
+    </frame>
+  );
+  // 悬浮窗不会自动关闭
+  setInterval(() => { }, 1000);
+  win.setPosition(700, height / 4);
+  win.setSize(400, 300);
+  // 悬浮窗可调整大小
+  win.setAdjustEnabled(true);
+  // 长按悬浮窗内文字结束脚本
+  win.text.longClick(() => {
+    // try...catch把exit()函数的异常捕捉，则脚本不会立即停止，仍会运行几行后再停止
+    try {
+      toast_console("检测到长按悬浮窗文字，脚本终止。", true);
+      closeScript();
+    } catch (err) { }
+    // 直接exit()的话坚持不到return的时候
+    return true;
+  });
+}
+
+/**
+ * 启用按键监听，按下音量下键脚本结束
+ */
+ function keyDetector() {
+  // 在子进程中运行监听事件
+  threads.start(function () {
+    events.observeKey();
+    events.on("key", function (code, event) {
+      var keyCodeStr = event.keyCodeToString(code);
+      // log(code);
+      // log(keyCodeStr);
+      if (keyCodeStr == "KEYCODE_VOLUME_DOWN") {
+        toast_console("检测到音量下键，脚本终止。", true);
+        closeScript();
+      }
+    });
+  });
+}
+
+/**
+ * 关闭应用
+ */
 function closeApp() {
   let packageName = currentPackage();
   app.openAppSetting(packageName);
@@ -210,21 +228,35 @@ function closeApp() {
     textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*)/).findOnce().click();
     sleep(NANO_TIME);
     textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*|.*确.*|.*定.*)/).clickable(true).findOnce().click();
-    // log(appName + "应用已被关闭。");
     sleep(NANO_TIME);
+    // 返回主页
     home();
     sleep(NANO_TIME);
   } else {
-    // log(appName + "应用不能被正常关闭或不在后台运行。");
+    toast_console(appName + "应用不能被正常关闭或不在后台运行。");
     home();
   }
-  closeScript("打卡结束，" + appName + "应用已被关闭。");
+  toast_console("打卡结束，" + appName + "应用已被关闭。", true);
+  closeScript();
 }
 
-// 关闭脚本，取消屏幕常亮
-function closeScript(msg) {
-  toast(msg);
+/**
+ * 关闭脚本，取消屏幕常亮
+ */
+function closeScript() {
   // 取消屏幕常亮
   device.cancelKeepingAwake();
   exit();
 }
+
+// 
+/**
+ * 记录日志，统计根据参数判断前台是否提示
+ * @param {string} msg 要记录或者提示的消息
+ * @param {boolean} tshow 前台是否显式
+ */
+function toast_console(msg, tshow) {
+	console.log(msg);
+	if (tshow) toast(msg);
+}
+
