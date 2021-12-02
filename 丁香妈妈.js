@@ -1,9 +1,7 @@
 /* --------版本 v0.03 根据个人情况修改以下内容---------- */
 
-// 引入发邮件的组件
-var mail = require('/storage/emulated/0/脚本/utils/mail.js');
-// 引入解锁组件
-var unlock = require('/storage/emulated/0/脚本/utils/unlock.js');
+// 引入工具组件
+var utils = require('/storage/emulated/0/脚本/utils/utils.js');
 
 // 设置屏幕常亮时间，默认 45 分钟
 var SCREEN_DIM_TIME = 45 * 60 * 1000;
@@ -38,7 +36,7 @@ keyDetector();
 // 保持屏幕常亮，默认 35 分钟
 device.keepScreenDim(SCREEN_DIM_TIME);
 // 解锁屏幕
-unlock.unlock("123456");
+utils.unlock("123456");
 
 /* --------版本 v0.03 根据个人情况修改以上内容---------- */
 
@@ -88,7 +86,7 @@ function watchVideo() {
   // 打卡成功
   if(FINISH_MARK == 0) {
     toast_console("所有课程已打卡完毕！", true);
-    mail.send("丁香妈妈", "绘本课程打卡完成！\n其他5门课程都已打卡完成！", "[打卡完成]");
+    utils.sendMail("丁香妈妈", "绘本课程打卡完成！\n其他5门课程都已打卡完成！", "[打卡完成]");
     sleep(SHORT_TIME);
   }
   closeApp();

@@ -1,3 +1,6 @@
+// 引入工具组件
+var utils = require('/storage/emulated/0/脚本/utils/utils.js');
+
 // 开启通知栏监听
 events.observeNotification();
 events.onNotification(function (notification) {
@@ -15,12 +18,20 @@ function printNotification(notification) {
   // log("通知数: " + notification.number);
   // log("通知摘要: " + notification.tickerText);
 
-  // 如果是收到了邮件，并且邮件标题带有 [自动] 表示有应用忘记打卡了
   let autoMark = "[自动]";
-  let title = notification.getText();
-  if ("com.tencent.androidqqmail" == notification.getPackageName() && title.indexOf(autoMark) != -1) {
-    title = title.substring(title.indexOf(autoMark) + autoMark.length);
-    let path = "/storage/emulated/0/脚本/" + title + ".js";
-    engines.execScriptFile(path);
+  let autoAlarm = "[闹钟]";
+  // 如果是收到了邮件
+  if ("com.tencent.androidqqmail" == notification.getPackageName()) {
+    // 邮件标题带有 [自动] 表示有应用忘记打卡了
+    if(title.indexOf(autoMark) != -1) {
+      let title = notification.getText();
+      let scriptName = title.substring(title.indexOf(autoMark) + autoMark.length);
+      let path = "/storage/emulated/0/脚本/" + scriptName + ".js";
+      engines.execScriptFile(path);
+    }
+    // 邮件标题带有 [闹钟] 表示需要找手机了
+    if(title.indexOf(autoAlarm) != -1) {
+      utils.findPhone();
+    }
   }
 }
