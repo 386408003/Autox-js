@@ -22,15 +22,18 @@ function printNotification(notification) {
   let autoAlarm = "[闹钟]";
   // 如果是收到了邮件
   if ("com.tencent.androidqqmail" == notification.getPackageName()) {
+    let title = notification.getText();
     // 邮件标题带有 [自动] 表示有应用忘记打卡了
     if(title.indexOf(autoMark) != -1) {
-      let title = notification.getText();
       let scriptName = title.substring(title.indexOf(autoMark) + autoMark.length);
       let path = "/storage/emulated/0/脚本/" + scriptName + ".js";
       engines.execScriptFile(path);
     }
     // 邮件标题带有 [闹钟] 表示需要找手机了
     if(title.indexOf(autoAlarm) != -1) {
+      // 解锁屏幕
+      utils.unlock("123456");
+      // 查找手机
       utils.findPhone();
     }
   }
