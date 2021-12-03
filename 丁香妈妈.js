@@ -67,7 +67,7 @@ function watchVideo() {
     click(point1.x, point1.y);
     sleep(SHORT_TIME);
   } else {
-    toast_console("未找到课程，请检查网络！", true);
+    utils.toast_console("未找到课程，请检查网络！", true);
   }
 
   // 点击 全部课程 按钮
@@ -83,11 +83,11 @@ function watchVideo() {
     playCourse("身体认知童谣", "头发 ");
     playCourse("食物认知童谣", "强壮猪肝", "红肉");
   } else {
-    toast_console("未找到全部课程，请确认是否登陆！", true);
+    utils.toast_console("未找到全部课程，请确认是否登陆！", true);
   }
   // 打卡成功
-  if(FINISH_MARK == 0) {
-    toast_console("所有课程已打卡完毕！", true);
+  if (FINISH_MARK == 0) {
+    utils.toast_console("所有课程已打卡完毕！", true);
     utils.sendMail("丁香妈妈", "绘本课程打卡完成！\n其他5门课程都已打卡完成！", "[打卡完成]");
     sleep(SHORT_TIME);
   }
@@ -102,22 +102,22 @@ function watchVideo() {
  * @returns 
  */
 function playCourse(courseType, courseName, parentName) {
-  toast_console(courseType + "：开始打卡");
+  utils.toast_console(courseType + "：开始打卡");
   bean = text(courseType).findOnce();
-  if(bean.parent().parent().parent().child(5).text() == "今日已打卡") {
-    toast_console(courseType + "：今日已打卡");
+  if (bean.parent().parent().parent().child(5).text() == "今日已打卡") {
+    utils.toast_console(courseType + "：今日已打卡");
     return FINISH_MARK--;
   }
   bean.click();
   sleep(SHORT_TIME);
   // courseName 没有值，即传了一个参数
-  if(!courseName) {
+  if (!courseName) {
     // 绘本课程左边图片组件
     let px = id("com.dxy.gaia:id/story_book_image_item").findOnce().bounds().centerX();
     let py = id("com.dxy.gaia:id/story_book_image_item").findOnce().bounds().centerY();
     click(px, py);
     sleep(PLAY_COURSE_TIME * 3);
-    toast_console(courseType + "：打卡结束");
+    utils.toast_console(courseType + "：打卡结束");
     // 返回选择课程页面
     switchCourse();
     return FINISH_MARK--;
@@ -137,7 +137,7 @@ function playCourse(courseType, courseName, parentName) {
   click(point2.x, point2.y);
   sleep(PLAY_COURSE_TIME);
   FINISH_MARK--;
-  toast_console(courseType + "：打卡结束");
+  utils.toast_console(courseType + "：打卡结束");
   // 返回选择课程页面
   switchCourse();
 }
@@ -170,7 +170,7 @@ function killOthersAlive() {
 /**
  * 设置并开启悬浮窗，退出悬浮窗时结束脚本
  */
- function setFloatWindow() {
+function setFloatWindow() {
   //启用悬浮窗，用于提示，为没有音量下键的手机提供了关闭悬浮窗可以直接停止脚本的方式
   var win = floaty.window(
     <frame gravity="left">
@@ -187,7 +187,7 @@ function killOthersAlive() {
   win.text.longClick(() => {
     // try...catch把exit()函数的异常捕捉，则脚本不会立即停止，仍会运行几行后再停止
     try {
-      toast_console("检测到长按悬浮窗文字，脚本终止。", true);
+      utils.toast_console("检测到长按悬浮窗文字，脚本终止。", true);
       closeScript();
     } catch (err) { }
     // 直接exit()的话坚持不到return的时候
@@ -198,16 +198,14 @@ function killOthersAlive() {
 /**
  * 启用按键监听，按下音量下键脚本结束
  */
- function keyDetector() {
+function keyDetector() {
   // 在子进程中运行监听事件
   threads.start(function () {
     events.observeKey();
     events.on("key", function (code, event) {
       var keyCodeStr = event.keyCodeToString(code);
-      // log(code);
-      // log(keyCodeStr);
       if (keyCodeStr == "KEYCODE_VOLUME_DOWN") {
-        toast_console("检测到音量下键，脚本终止。", true);
+        utils.toast_console("检测到音量下键，脚本终止。", true);
         closeScript();
       }
     });
@@ -233,10 +231,10 @@ function closeApp() {
     home();
     sleep(NANO_TIME);
   } else {
-    toast_console(appName + "应用不能被正常关闭或不在后台运行。");
+    utils.toast_console(appName + "应用不能被正常关闭或不在后台运行。");
     home();
   }
-  toast_console("打卡结束，" + appName + "应用已被关闭。", true);
+  utils.toast_console("打卡结束，" + appName + "应用已被关闭。", true);
   closeScript();
 }
 
@@ -247,16 +245,5 @@ function closeScript() {
   // 取消屏幕常亮
   device.cancelKeepingAwake();
   exit();
-}
-
-// 
-/**
- * 记录日志，统计根据参数判断前台是否提示
- * @param {string} msg 要记录或者提示的消息
- * @param {boolean} tshow 前台是否显式
- */
-function toast_console(msg, tshow) {
-	console.log(msg);
-	if (tshow) toast(msg);
 }
 

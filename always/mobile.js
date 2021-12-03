@@ -1,5 +1,7 @@
 // 使用本地存储
 var storage = storages.create("386408003@qq.com:config");
+// 引入工具组件
+var utils = require(storage.get("rootPath") + 'utils/utils.js');
 
 importClass(android.content.ClipboardManager);
 /** 
@@ -16,13 +18,13 @@ var Listener = new ClipboardManager.OnPrimaryClipChangedListener({
       value = value.toString();
       value = encryptString(value);
       let url = "http://" + IPAddressOfYourComputer + ":" + PORT + "?clipboard=" + value;
-      log(url);
+      utils.toast_console(url);
       http.get(url, {}, function (res, err) {
         if (err) {
           console.error(err);
           return;
         }
-        log(res.body.string());
+        utils.toast_console(res.body.string());
       });
     }
   },

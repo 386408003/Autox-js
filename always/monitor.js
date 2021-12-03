@@ -8,17 +8,17 @@ events.observeNotification();
 events.onNotification(function (notification) {
   printNotification(notification);
 });
-toast("监听通知栏中。。。");
+utils.toast_console("监听通知栏中。。。", true);
 
 // 监听回调方法
 function printNotification(notification) {
-  // log("应用包名: " + notification.getPackageName());
-  // log("通知文本: " + notification.getText());
-  // log("通知优先级: " + notification.priority);
-  // log("通知目录: " + notification.category);
-  // log("通知时间: " + new Date(notification.when));
-  // log("通知数: " + notification.number);
-  // log("通知摘要: " + notification.tickerText);
+  // utils.toast_console("应用包名: " + notification.getPackageName());
+  // utils.toast_console("通知文本: " + notification.getText());
+  // utils.toast_console("通知优先级: " + notification.priority);
+  // utils.toast_console("通知目录: " + notification.category);
+  // utils.toast_console("通知时间: " + new Date(notification.when));
+  // utils.toast_console("通知数: " + notification.number);
+  // utils.toast_console("通知摘要: " + notification.tickerText);
 
   let autoMark = "[自动]";
   let autoAlarm = "[闹钟]";
