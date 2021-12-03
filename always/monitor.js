@@ -1,5 +1,7 @@
+// 使用本地存储
+var storage = storages.create("386408003@qq.com:config");
 // 引入工具组件
-var utils = require('/storage/emulated/0/脚本/utils/utils.js');
+var utils = require(storage.get("rootPath") + 'utils/utils.js');
 
 // 开启通知栏监听
 events.observeNotification();
@@ -26,13 +28,11 @@ function printNotification(notification) {
     // 邮件标题带有 [自动] 表示有应用忘记打卡了
     if(title.indexOf(autoMark) != -1) {
       let scriptName = title.substring(title.indexOf(autoMark) + autoMark.length);
-      let path = "/storage/emulated/0/脚本/" + scriptName + ".js";
+      let path = storage.get("rootPath") + scriptName + ".js";
       engines.execScriptFile(path);
     }
     // 邮件标题带有 [闹钟] 表示需要找手机了
     if(title.indexOf(autoAlarm) != -1) {
-      // 解锁屏幕
-      utils.unlock("123456");
       // 查找手机
       utils.findPhone();
     }

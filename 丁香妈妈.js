@@ -1,7 +1,9 @@
 /* --------版本 v0.03 根据个人情况修改以下内容---------- */
 
+// 使用本地存储
+var storage = storages.create("386408003@qq.com:config");
 // 引入工具组件
-var utils = require('/storage/emulated/0/脚本/utils/utils.js');
+var utils = require(storage.get("rootPath") + 'utils/utils.js');
 
 // 设置屏幕常亮时间，默认 45 分钟
 var SCREEN_DIM_TIME = 45 * 60 * 1000;
@@ -36,7 +38,7 @@ keyDetector();
 // 保持屏幕常亮，默认 35 分钟
 device.keepScreenDim(SCREEN_DIM_TIME);
 // 解锁屏幕
-utils.unlock("123456");
+utils.unlock(storage.get("password"));
 
 /* --------版本 v0.03 根据个人情况修改以上内容---------- */
 

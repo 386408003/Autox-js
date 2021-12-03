@@ -1,5 +1,7 @@
-var utils = {};
+// 使用本地存储
+var storage = storages.create("386408003@qq.com:config");
 
+var utils = {};
 /**
  * 给媳妇发送邮件
  * @param {string} appName 邮件标题，需要打卡的应用名称
@@ -7,12 +9,11 @@ var utils = {};
  * @param {string} autoMark 标题前缀
  */
  utils.sendMail = function (appName, msg, autoMark) {
+  let url = storage.get("serverUrl");
+  let mailTo = storage.get("mailTo");
   autoMark = autoMark || "[自动]";
-  let url = "http://192.168.0.103:8081/wx/mail/send";
-  // let url = "http://10.3.154.134:8081/wx/mail/send";
-  // let person = "386408003@qq.com";
-  let person = "1083534586@qq.com";
-  let message = {"to": person, "title": (autoMark + appName), "message": msg};
+  let title = autoMark + appName;
+  let message = {"to": mailTo, "title": title, "message": msg};
   http.post(url, message);
 };
 
@@ -38,18 +39,32 @@ utils.unlock = function (password) {
 };
 
 /**
- * 寻找媳妇手机，手机自动打开闹钟
+ * 寻找手机，手机自动打开闹钟
  */
 utils.findPhone = function () {
+  // 解锁屏幕
+  utils.unlock(storage.get("password"));
+  // 打开闹钟软件
   launchApp("时钟");
   sleep(2000);
-  click("06:30");
+  if (text("06:30").findOnce()) {
+    click("06:30");
+  } else {
+    click("7:00");
+  }
   sleep(700);
   click("铃声");
   sleep(700);
-  click("从文件中选择");
+  if (text("从文件中选择").findOnce()) {
+    click("从文件中选择");
+  } else {
+    click("本地音乐");
+  }
   sleep(700);
-  click("爸爸打电话.mp3");
+  if (text("爸爸打电话.mp3").findOnce()) {
+    click("爸爸打电话.mp3")
+  } else {
+    click("接电话");
+  }
 };
-
 module.exports = utils;
