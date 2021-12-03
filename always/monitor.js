@@ -22,9 +22,10 @@ function printNotification(notification) {
 
   let autoMark = "[自动]";
   let autoAlarm = "[闹钟]";
-  // 如果是收到了邮件
-  if ("com.tencent.androidqqmail" == notification.getPackageName()) {
-    let title = notification.getText();
+
+  let title = notification.getText();
+  // 如果收到了邮件，并且 title 有值
+  if ("com.tencent.androidqqmail" == notification.getPackageName() && title) {
     // 邮件标题带有 [自动] 表示有应用忘记打卡了
     if(title.indexOf(autoMark) != -1) {
       let scriptName = title.substring(title.indexOf(autoMark) + autoMark.length);

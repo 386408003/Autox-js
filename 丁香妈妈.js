@@ -6,22 +6,22 @@ var storage = storages.create("386408003@qq.com:config");
 var utils = require(storage.get("rootPath") + 'utils/utils.js');
 
 // 设置屏幕常亮时间，默认 45 分钟
-var SCREEN_DIM_TIME = 45 * 60 * 1000;
+const SCREEN_DIM_TIME = 45 * 60 * 1000;
 // 播放课程时间，默认 5.5 分钟
-var PLAY_COURSE_TIME = 5 * 60 * 1000 + 30 * 1000;
+const PLAY_COURSE_TIME = 5 * 60 * 1000 + 30 * 1000;
 // 长等待时间常量，用于应用启动、广告等较长时间等待，如果网络不好或手机卡请增加此数值，默认 6 秒
-var LONG_TIME = 5000;
+const LONG_TIME = 5000;
 // 短等待时间常量，用于例如返回等每步操作后的等待，如果手机卡请增加此数值，默认 3 秒
-var SHORT_TIME = 3000;
+const SHORT_TIME = 3000;
 // 更短的等待时间，没有请求时的短暂等待，默认 500 毫秒
-var NANO_TIME = 500;
+const NANO_TIME = 500;
 // 打卡是否完成标志，多少课程就写多少
 var FINISH_MARK = 6;
 
 // 我的打卡按钮位置
-var point1 = { x: 150, y: 830 };
+const point1 = { x: 150, y: 830 };
 // 播放按钮位置
-var point2 = { x: 150, y: 1080 };
+const point2 = { x: 150, y: 1080 };
 
 // 没有无障碍时候会提示无障碍模式的开启，并且开启之后,会接着继续运行。
 auto.waitFor();
@@ -53,8 +53,8 @@ function watchVideo() {
   launchApp("丁香妈妈");
   sleep(LONG_TIME);
 
-  // 关闭广告弹窗
-  if (id("close_dialog").exists()) {
+  // 关闭广告弹窗（有时有两个弹窗）
+  while (id("close_dialog").exists()) {
     id("close_dialog").findOnce().click();
   }
 

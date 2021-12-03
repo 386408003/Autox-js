@@ -1,9 +1,11 @@
+// 使用本地存储
+var storage = storages.create("386408003@qq.com:config");
+
 importClass(android.content.ClipboardManager);
 /** 
  * 请将ip改成你电脑的ip 
  */
-// const IPAddressOfYourComputer = "10.3.154.134";
-const IPAddressOfYourComputer = "192.168.0.103";
+var IPAddressOfYourComputer = storage.get("devUrl");
 
 const PORT = 7101;
 var clipboard = context.getSystemService(context.CLIPBOARD_SERVICE);
