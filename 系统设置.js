@@ -47,10 +47,14 @@ layout_gravity 用于决定 View 本身在他的父布局的位置
 var storage = storages.create("386408003@qq.com:config");
 // 引入工具组件
 var utils = null;
-if(storage.get("rootPath")) {
-  utils = require(storage.get("rootPath") + 'utils/utils.js');
+var scriptsPath = "/sdcard/脚本/";
+if (storage.get("rootPath")) {
+  utils = require(storage.get("rootPath") + "utils/utils.js");
 } else {
-  utils = require("/storage/emulated/0/脚本/utils/utils.js");
+  if (!files.exists(scriptsPath)) {
+    scriptsPath = "/sdcard/Scripts/";
+  }
+  utils = require(scriptsPath + "utils/utils.js");
 }
 
 // 单选框选择的索引
@@ -61,54 +65,57 @@ var whichOne = 0;
  */
 ui.layout(
   <vertical>
-    <text text="系统设置 By Zhufeng" textSize="30sp" textColor="#fbfbfe" bg="#00afff" w="*" gravity="center"></text>
-    
-    <horizontal>
-      <text w="90" marginLeft="7" text="APP 名称：" gravity="right"></text>
-      <input w="*" id="appName"/>
-    </horizontal>
-    <button id="launchApp" w="*" margin="30 0 30 20">打开 APP</button>
+    <text text="系统设置" textSize="30sp" textColor="#fbfbfe" bg="#00afff" w="*" gravity="center"></text>
+    <ScrollView>
+      <vertical>
+        <horizontal>
+          <text w="90" marginLeft="7" text="APP 名称：" gravity="right"></text>
+          <input w="*" id="appName" />
+        </horizontal>
+        <button id="launchApp" w="*" margin="30 0 30 20">打开 APP</button>
 
-    <horizontal>
-      <text w="90" marginLeft="7" text="邮箱：" gravity="right"></text>
-      <text w="*" id="email" textSize="17sp"></text>
-    </horizontal>
-    <horizontal>
-      <text w="90" marginLeft="7" text="类型：" gravity="right"></text>
-      <text id="emailType" text="- 请选择 -" textSize="15sp" textStyle="bold"></text>
-      <text marginLeft="7" text="标题："></text>
-      <input w="*" id="emailTitle" />
-    </horizontal>
-    <horizontal>
-      <text w="90" marginLeft="7" text="内容：" gravity="right"></text>
-      <input w="*" id="emailContent" />
-    </horizontal>
-    <button id="sendMail" w="*" margin="30 0 30 20">发邮件</button>
+        <horizontal>
+          <text w="90" marginLeft="7" text="邮箱：" gravity="right"></text>
+          <text w="*" id="email" textSize="17sp"></text>
+        </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="类型：" gravity="right"></text>
+          <text id="emailType" text="- 请选择 -" textSize="15sp" textStyle="bold"></text>
+          <text marginLeft="7" text="标题："></text>
+          <input w="*" id="emailTitle" />
+        </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="内容：" gravity="right"></text>
+          <input w="*" id="emailContent" />
+        </horizontal>
+        <button id="sendMail" w="*" margin="30 0 30 20">发邮件</button>
 
-    <horizontal>
-      <text w="90" marginLeft="7" text="锁屏密码：" gravity="right"></text>
-      <input w="*" id="password" password="true" />
-    </horizontal>
-    <horizontal marginTop="10">
-      <text w="90" marginLeft="7" text="开发服务器：" gravity="right"></text>
-      <input w="*" id="devUrl" />
-    </horizontal>
-    <horizontal>
-      <text w="90" marginLeft="7" text="邮箱：" gravity="right"></text>
-      <input w="*" id="mailTo" />
-    </horizontal>
-    <horizontal>
-      <text w="90" marginLeft="7" text="脚本根目录：" gravity="right"></text>
-      <input w="*" id="rootPath" />
-    </horizontal>
-    <horizontal>
-      <text w="90" marginLeft="7" text="邮件服务器：" gravity="right"></text>
-      <input w="*" id="serverUrl" />
-    </horizontal>
-    <horizontal>
-      <button id="exit" textSize="30sp" margin="0 30">退出</button>
-      <button w="*" id="saveConfig" textSize="30sp" margin="0 30">保存</button>
-    </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="锁屏密码：" gravity="right"></text>
+          <input w="*" id="password" password="true" />
+        </horizontal>
+        <horizontal marginTop="10">
+          <text w="90" marginLeft="7" text="开发服务器：" gravity="right"></text>
+          <input w="*" id="devUrl" />
+        </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="脚本根目录：" gravity="right"></text>
+          <input w="*" id="rootPath" />
+        </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="邮箱：" gravity="right"></text>
+          <input w="*" id="mailTo" />
+        </horizontal>
+        <horizontal>
+          <text w="90" marginLeft="7" text="邮件服务器：" gravity="right"></text>
+          <input w="*" id="serverUrl" />
+        </horizontal>
+        <horizontal>
+          <button id="exit" textSize="30sp" margin="0 30">退出</button>
+          <button w="*" id="saveConfig" textSize="30sp" margin="0 30">保存</button>
+        </horizontal>
+      </vertical>
+    </ScrollView>
   </vertical>
 );
 
@@ -132,7 +139,7 @@ ui.emailType.click(function () {
 /**
  * 发邮件按钮点击事件
  */
-ui.sendMail.click(function() {
+ui.sendMail.click(function () {
   // 单选框实际值
   let chooseList = ["[其他]", "[自动]", "[闹钟]"];
   let autoMark = chooseList[whichOne];
@@ -140,11 +147,12 @@ ui.sendMail.click(function() {
   // let email = ui.email.text();
   let emailTitle = ui.emailTitle.text();
   let emailContent = ui.emailContent.text();
-  if(emailTitle && emailContent) {
+  if (emailTitle && emailContent) {
     // 启动一个线程
-    threads.start(function(){
+    threads.start(function () {
       // 在子线程中发送邮件
       utils.sendMail(emailTitle, emailContent, autoMark);
+      utils.toast_console("邮件发送成功！", true);
     });
   } else {
     utils.toast_console("请填写邮件标题和内容后提交。", true);
@@ -154,9 +162,9 @@ ui.sendMail.click(function() {
 /**
  * 运行 APP 按钮点击事件
  */
-ui.launchApp.click(function() {
+ui.launchApp.click(function () {
   let appName = ui.appName.text();
-  if(appName) {
+  if (appName) {
     app.launchApp(appName);
   } else {
     utils.toast_console("请输入要打开的 APP 名称。", true);
@@ -180,17 +188,17 @@ ui.saveConfig.click(function () {
   utils.toast_console("mailTo = " + ui.mailTo.text());
   utils.toast_console("rootPath = " + ui.rootPath.text());
   utils.toast_console("password = " + ui.password.text());
-  
+
   // 保存本地存储
   storage.put("devUrl", ui.devUrl.text());
   storage.put("serverUrl", ui.serverUrl.text());
   storage.put("mailTo", ui.mailTo.text());
   storage.put("rootPath", ui.rootPath.text());
   storage.put("password", ui.password.text());
-  
+
   // 更新邮件表单
   ui.email.setText(storage.get("mailTo"));
-  
+
   utils.toast_console("保存成功！", true);
 });
 
@@ -201,7 +209,7 @@ ui.saveConfig.click(function () {
 function initMailForm(emailType) {
   let emailTitle = "自定义标题";
   let emailContent = "随便写点什么吧！";
-  switch(whichOne){
+  switch (whichOne) {
     case 0:
       emailTitle = "自定义标题";
       emailContent = "随便写点什么吧！";
@@ -235,16 +243,21 @@ function initConfigForm() {
   let mailTo = storage.get("mailTo");
   let rootPath = storage.get("rootPath");
   let password = storage.get("password");
-  if(devUrl && serverUrl && mailTo && rootPath && password) {
+  if (devUrl && serverUrl && mailTo && password) {
     // 设置配置表单初始值
     ui.devUrl.setText(storage.get("devUrl"));
     ui.serverUrl.setText(storage.get("serverUrl"));
     ui.mailTo.setText(storage.get("mailTo"));
-    ui.rootPath.setText(storage.get("rootPath"));
     ui.password.setText(storage.get("password"));
-  
+
     // 设置邮件表单初始值
     ui.email.setText(storage.get("mailTo"));
+  }
+  // 脚本根目录比较关键，单独处理
+  if (rootPath) {
+    ui.rootPath.setText(storage.get("rootPath"));
+  } else {
+    ui.rootPath.setText(scriptsPath);
   }
 }
 

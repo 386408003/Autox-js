@@ -1,7 +1,7 @@
 // 使用本地存储
 var storage = storages.create("386408003@qq.com:config");
 // 引入工具组件
-var utils = require(storage.get("rootPath") + 'utils/utils.js');
+var utils = require(storage.get("rootPath") + "utils/utils.js");
 
 // 开启通知栏监听
 events.observeNotification();
