@@ -17,6 +17,12 @@ const LONG_TIME = 5000;
 const SHORT_TIME = 3000;
 // 更短的等待时间，没有请求时的短暂等待，默认 500 毫秒
 const NANO_TIME = 500;
+// 启用悬浮窗，用于提示，为没有音量下键的手机提供了关闭悬浮窗可以直接停止脚本的方式
+const win = floaty.window(
+  <frame gravity="left">
+    <text id="text" textColor="black" bg='#ffffff'>★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本。</text>
+  </frame>
+);
 // 组件找不到重试次数，默认 5 次
 const maxRetryTimes = 5;
 // 程序所有页面枚举
@@ -261,6 +267,7 @@ function playCourse(courseNameArray) {
     while (id("com.dxy.gaia:id/tv_skip").exists()) {
       id("com.dxy.gaia:id/tv_skip").findOnce().click();
     }
+    updateWindowTime(PLAY_COURSE_TIME * 3 / 1000);
     sleep(PLAY_COURSE_TIME * 3);
     FINISH_MARK--;
     utils.toast_console(courseType + "：打卡结束！");
@@ -306,6 +313,7 @@ function playCourse(courseNameArray) {
   let playButtonY = playButtonBounds.bottom - (playButtonBounds.bottom - playButtonBounds.top) / 8;
   utils.toast_console("播放按钮计算位置为：" + playButtonX + ", " + playButtonY);
   click(playButtonX, playButtonY);
+  updateWindowTime(PLAY_COURSE_TIME / 1000);
   sleep(PLAY_COURSE_TIME);
   FINISH_MARK--;
   utils.toast_console(courseType + "：打卡结束！");
@@ -363,16 +371,10 @@ function killOthersAlive() {
  * 设置并开启悬浮窗，退出悬浮窗时结束脚本
  */
 function setFloatWindow() {
-  //启用悬浮窗，用于提示，为没有音量下键的手机提供了关闭悬浮窗可以直接停止脚本的方式
-  var win = floaty.window(
-    <frame gravity="left">
-      <text id="text" textColor="black" bg='#ffffff'>★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本</text>
-    </frame>
-  );
   // 悬浮窗不会自动关闭
   setInterval(() => { }, NANO_TIME * 2);
   win.setPosition(width / 3 * 2, height / 4);
-  win.setSize(400, 280);
+  win.setSize(430, 280);
   // 悬浮窗可调整大小
   win.setAdjustEnabled(true);
   // 长按悬浮窗内文字结束脚本
@@ -385,6 +387,25 @@ function setFloatWindow() {
     // 直接exit()的话坚持不到return的时候
     return true;
   });
+}
+
+/**
+ * 更新悬浮窗时间
+ */
+function updateWindowTime(windowTime) {
+  let tips = "★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本。";
+  win.setSize(430, 320);
+  win.text.setText(tips + "\n剩余：" + windowTime-- + " 秒");
+  // 每秒更新一下倒计时
+  var inter = setInterval(function() {
+    win.text.setText(tips + "\n剩余：" + windowTime-- + " 秒");
+    if(!windowTime) {
+      clearInterval(inter);
+      sleep(NANO_TIME * 2);
+      win.setSize(430, 280);
+      win.text.setText(tips);
+    }
+  }, 1000);
 }
 
 /**
