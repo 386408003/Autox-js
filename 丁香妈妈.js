@@ -10,7 +10,7 @@ utils.unlock(storage.get("password"));
 // 设置屏幕常亮时间，默认 45 分钟
 const SCREEN_DIM_TIME = 45 * 60 * 1000;
 // 播放课程时间，默认 5.5 分钟
-const PLAY_COURSE_TIME = 5 * 60 * 1000 + 30 * 1000;
+const PLAY_COURSE_TIME = (5 * 60 + 30) * 1000;
 // 长等待时间常量，用于应用启动等较长时间等待，如果网络不好或手机卡请增加此数值，默认 5 秒
 const LONG_TIME = 5000;
 // 短等待时间常量，用于按钮点击、返回等每步操作后的等待，如果网络不好或手机卡请增加此数值，默认 3 秒
@@ -46,8 +46,6 @@ const allCourseName = [
   ["身体认知童谣", "头发 "],
   ["食物认知童谣", "强壮猪肝", "红肉"]
 ];
-// 根据此标志判断打卡是否完成
-var FINISH_MARK = allCourseName.length;
 
 /* --------版本 v0.06 根据个人情况修改以上内容---------- */
 
@@ -81,22 +79,25 @@ function beginClockIn() {
     id("close_dialog").findOnce().click();
   }
 
+  // 根据此标志判断打卡是否完成
+  let finish_mark = false;
   // 自动判断所属页面并进行打卡
   let maxClockRetryTimes = maxRetryTimes;
   while (maxClockRetryTimes--) {
     if (switchPageAuto()) {
+      finish_mark = true;
       break;
     }
   }
-
-  // 打卡成功
-  if (FINISH_MARK == 0) {
+  if (finish_mark) {
+    // 打卡成功
     utils.toast_console("所有课程已打卡完毕！", true);
     utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
     sleep(SHORT_TIME);
   } else {
     utils.toast_console("未打卡完毕！");
   }
+  // 关闭 APP
   closeApp();
 }
 
@@ -196,11 +197,11 @@ function switchPageAuto() {
         return false;
       }
     }
+    return true;
   } else {
     utils.toast_console("未找到全部课程，请确认是否登陆！", true);
     return false;
   }
-  return true;
 }
 
 /**
@@ -244,18 +245,20 @@ function playCourse(courseNameArray) {
   }
   // 判断本次是否已打卡
   if (component.parent().parent().parent().child(5).text() == "今日已打卡") {
-    FINISH_MARK--
     utils.toast_console(courseType + "：今日已打卡！");
     return true;
   }
   // 判断课程是否已全部打卡完成
   if (component.parent().parent().parent().child(5).text() == "已完成") {
-    FINISH_MARK--
     utils.toast_console(courseType + "：打卡已完成，无需打卡！");
     return true;
   }
   component.click();
   sleep(SHORT_TIME);
+  // 关闭广告弹窗
+  while (id("close_dialog").exists()) {
+    id("close_dialog").findOnce().click();
+  }
   // courseName 没有值，即传了一个参数
   if (!courseName) {
     // 绘本课程左边图片组件
@@ -269,7 +272,6 @@ function playCourse(courseNameArray) {
     }
     updateWindowTime(PLAY_COURSE_TIME * 3 / 1000);
     sleep(PLAY_COURSE_TIME * 3);
-    FINISH_MARK--;
     utils.toast_console(courseType + "：打卡结束！");
     // 返回选择课程页面
     switchCourse();
@@ -280,7 +282,7 @@ function playCourse(courseNameArray) {
   if (!parentName) {
     // 尝试查找课程名字是否存在，不存在就下拉
     while (!text(courseName).exists() && maxSwipeRetryTimes--) {
-      swipe(width / 2, height / 2, width / 2, height, NANO_TIME);
+      swipe(width / 2, height * 3 / 5, width / 2, height + height / 2, NANO_TIME);
       sleep(NANO_TIME);
       utils.toast_console("下拉 " + (maxRetryTimes - maxSwipeRetryTimes) + " 次，再次查找课程！");
     }
@@ -290,7 +292,7 @@ function playCourse(courseNameArray) {
     while (!text(courseName).exists() && maxSwipeRetryTimes--) {
       // 判断父级是否存在
       while (!text(parentName).exists() && maxSwipeRetryTimes--) {
-        swipe(width / 2, height / 2, width / 2, height, NANO_TIME);
+        swipe(width / 2, height * 3 / 5, width / 2, height + height / 2, NANO_TIME);
         sleep(NANO_TIME);
         utils.toast_console("下拉 " + (maxRetryTimes - maxSwipeRetryTimes) + " 次，再次查找课程！");
       }
@@ -315,7 +317,6 @@ function playCourse(courseNameArray) {
   click(playButtonX, playButtonY);
   updateWindowTime(PLAY_COURSE_TIME / 1000);
   sleep(PLAY_COURSE_TIME);
-  FINISH_MARK--;
   utils.toast_console(courseType + "：打卡结束！");
   // 返回选择课程页面
   switchCourse();
@@ -393,19 +394,22 @@ function setFloatWindow() {
  * 更新悬浮窗时间
  */
 function updateWindowTime(windowTime) {
-  let tips = "★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本。";
-  win.setSize(430, 320);
-  win.text.setText(tips + "\n剩余：" + windowTime-- + " 秒");
-  // 每秒更新一下倒计时
-  var inter = setInterval(function() {
+  ui.run(function () {
+    let tips = "★★★Tips:按下[音量-]键或者长按[悬浮窗内文字]可随时结束脚本。";
+    win.setSize(430, 320);
     win.text.setText(tips + "\n剩余：" + windowTime-- + " 秒");
-    if(!windowTime) {
-      clearInterval(inter);
-      sleep(NANO_TIME * 2);
-      win.setSize(430, 280);
-      win.text.setText(tips);
-    }
-  }, 1000);
+    // 每秒更新一下倒计时
+    var inter = setInterval(function () {
+      win.text.setText(tips + "\n剩余：" + windowTime-- + " 秒");
+      if (!windowTime) {
+        clearInterval(inter);
+        setTimeout(function () {
+          win.setSize(430, 280);
+          win.text.setText(tips);
+        }, 1000)
+      }
+    }, 1000);
+  });
 }
 
 /**
