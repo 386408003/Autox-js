@@ -1,5 +1,7 @@
 // 使用本地存储
 var storage = storages.create("386408003@qq.com:config");
+var height = device.height;
+var width = device.width;
 
 var utils = {};
 /**
@@ -13,8 +15,8 @@ utils.sendMail = function (appName, msg, autoMark) {
   let mailTo = storage.get("mailTo");
   autoMark = autoMark || "[自动]";
   let title = autoMark + appName;
-  let message = { "to": mailTo, "title": title, "message": msg };
-  http.post(url, message);
+  let message = { "to": mailTo, "subject": title, "text": msg };
+  http.postJson(url, message);
 };
 
 /**
@@ -28,13 +30,14 @@ utils.unlock = function (password) {
     sleep(500);
   }
   // 输入密码界面
-  if (packageName("com.android.systemui").findOnce()) {
+  while (packageName("com.android.systemui").findOnce() && maxRetryTimes--) {
     // 滑动时间只能是 201 - 239 之间的数
-    swipe(500, 2000, 500, 1000, 201);
+    swipe(width / 2, height / 4 * 3, width / 2, height / 4, 201);
     sleep(1500);
     for (let i = 0; i < password.length; i++) {
-      desc(password[i]).findOne().click();
+      desc(password[i]).findOnce().click();
     }
+    sleep(500);
   }
 };
 
