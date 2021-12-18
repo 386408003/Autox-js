@@ -45,6 +45,7 @@ utils.unlock = function (password) {
  * 寻找手机，手机自动打开闹钟
  */
 utils.findPhone = function () {
+  let findTimes = 10;
   // 解锁屏幕
   utils.unlock(storage.get("password"));
   // 打开闹钟软件
@@ -62,10 +63,16 @@ utils.findPhone = function () {
     click("从文件中选择");
   }
   sleep(700);
-  if (text("爸爸打电话.mp3").findOnce()) {
-    click("爸爸打电话.mp3")
+  if (text("爸爸打电话.mp3").exists()) {
+    while(text("爸爸打电话.mp3").exists() && findTimes--){
+      click("爸爸打电话.mp3");
+      sleep(3000);
+    }
   } else {
-    click("Alarm Beep");
+    while(text("Alarm Beep").exists() && findTimes--){
+      click("Alarm Beep");
+      sleep(3000);
+    }
   }
 };
 
