@@ -72,7 +72,7 @@ beginClockIn();
  */
 function beginClockIn() {
   launchApp("丁香妈妈");
-  sleep(LONG_TIME);
+  sleep(SHORT_TIME * 2);
 
   // 关闭广告弹窗（有时有两个弹窗）
   while (id("close_dialog").exists()) {
@@ -244,12 +244,14 @@ function playCourse(courseNameArray) {
     return false;
   }
   // 判断本次是否已打卡
-  if (component.parent().parent().parent().child(5).text() == "今日已打卡") {
+  let componentParent = component.parent().parent().parent();
+  let childCount = componentParent.childCount();
+  if (componentParent.child(childCount-1).text() == "今日已打卡") {
     utils.toast_console(courseType + "：今日已打卡！");
     return true;
   }
   // 判断课程是否已全部打卡完成
-  if (component.parent().parent().parent().child(5).text() == "已完成") {
+  if (componentParent.child(childCount-1).text() == "已完成") {
     utils.toast_console(courseType + "：打卡已完成，无需打卡！");
     return true;
   }
@@ -346,7 +348,7 @@ function findUntilClick(component) {
   }
   if (component.exists()) {
     component.findOnce().click();
-    sleep(SHORT_TIME);
+    sleep(LONG_TIME);
     return true;
   } else {
     return false;
@@ -437,12 +439,21 @@ function closeApp() {
   app.openAppSetting(packageName);
   let appName = app.getAppName(packageName);
   text(appName).waitFor();
-  let is_sure = textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*)/).findOnce();
+  let is_sure = textMatches(/(.*强.*|.*停.*|.*结.*)/).findOnce();
   // 强行停止是否可以点击
-  if (is_sure.enabled()) {
-    textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*)/).findOnce().click();
+  if (is_sure.clickable()) {
+    is_sure.click();
     sleep(NANO_TIME);
     textMatches(/(.*强.*|.*停.*|.*结.*|.*行.*|.*确.*|.*定.*)/).clickable(true).findOnce().click();
+    sleep(NANO_TIME);
+    // 返回主页
+    home();
+    sleep(NANO_TIME);
+  // 强行停止父节点是否可以点击
+  } else if (is_sure.parent().clickable()) {
+    is_sure.parent().click();
+    sleep(NANO_TIME);
+    textMatches(/(.*确.*|.*定.*)/).clickable(true).findOnce().click();
     sleep(NANO_TIME);
     // 返回主页
     home();

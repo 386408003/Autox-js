@@ -57,24 +57,68 @@ utils.findPhone = function () {
     click("7:00");
   }
   sleep(700);
-  click("铃声");
+  if (text("铃声").findOnce()) {
+    click("铃声");
+  } else if (text("更多设置").findOnce()) {
+    click("更多设置");
+  } else {
+    desc("更多设置").findOnce().click();
+    sleep(700);
+    click("元素动态铃声");
+  }
   sleep(700);
   if (text("从文件中选择").findOnce()) {
     click("从文件中选择");
   }
   sleep(700);
+  // 媳妇手机
   if (text("爸爸打电话.mp3").exists()) {
-    while(text("爸爸打电话.mp3").exists() && findTimes--){
+    while (text("爸爸打电话.mp3").exists() && findTimes--) {
       click("爸爸打电话.mp3");
       sleep(3000);
     }
-  } else {
-    while(text("Alarm Beep").exists() && findTimes--){
+  // 华为手机
+  } else if (text("Alarm Beep").exists()) {
+    while (text("Alarm Beep").exists() && findTimes--) {
       click("Alarm Beep");
       sleep(3000);
     }
+  // 小米手机
+  } else {
+    while (text("元素动态铃声").exists() && findTimes--) {
+      click("元素动态铃声");
+      sleep(10000);
+    }
   }
 };
+
+/**
+ * 播放音乐
+ * 管理来电铃声（TYPE_RINGTONE）
+ * 提示音（TYPE_NOTIFICATION）
+ * 闹钟铃声（TYPE_ALARM）
+ * @param {Integer} playTimes 播放时长，默认 2 秒
+ * @param {Integer} volume 声音大小，默认 6
+ */
+utils.playMusic = function (playTimes, volume) {
+  var volume = volume || 10
+  var playTimes = playTimes || 2000
+  var music = android.media.RingtoneManager.TYPE_ALARM
+  var mp = new android.media.MediaPlayer();
+  device.setMusicVolume(volume)
+  mp.setDataSource(context, android.media.RingtoneManager.getDefaultUri(music));
+  mp.prepare();
+  mp.start();
+}
+
+/**
+ * 手机震动
+ * @param {Integer} vibrate_time 震动时间，默认 1 秒
+ */
+utils.phoneVibrate = function (vibrate_time) {
+  var vibrate_time = vibrate_time || 1000
+  device.vibrate(vibrate_time);
+}
 
 /**
  * 记录日志，统计根据参数判断前台是否提示
