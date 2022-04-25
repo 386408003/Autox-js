@@ -38,6 +38,11 @@ utils.unlock = function (password) {
       desc(password[i]).findOnce().click();
     }
     sleep(500);
+    // 返回主页
+    home();
+    if (packageName("com.miui.home").findOnce()) {
+      break;
+    }
   }
 };
 
