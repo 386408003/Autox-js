@@ -135,4 +135,24 @@ utils.toast_console = function (msg, tshow) {
   if (tshow) toast(msg);
 }
 
+/**
+ * 字符串加密并进行 Base64 编码（复制自 mobile.js）
+ * @param {*} data 待加密数据
+ * @returns 加密数据
+ */
+utils.encryptString = function (data) {
+  data = java.lang.String(data).getBytes();
+  return utils.base64Encode(data);
+}
+
+/**
+ * Base64 编码（复制自 mobile.js）
+ * @param {*} r 待加密字节数据
+ * @returns Base64编码后的字符串
+ */
+utils.base64Encode = function (r) {
+  var r = android.util.Base64.encodeToString(r, android.util.Base64.NO_WRAP);
+  return r;
+}
+
 module.exports = utils;

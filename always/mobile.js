@@ -16,7 +16,7 @@ var Listener = new ClipboardManager.OnPrimaryClipChangedListener({
     let value = getClip();
     if (value) {
       value = value.toString();
-      value = encryptString(value);
+      value = utils.encryptString(value);
       let url = "http://" + IPAddressOfYourComputer + ":" + PORT + "?clipboard=" + value;
       utils.toast_console(url);
       http.get(url, {}, function (res, err) {
@@ -34,13 +34,3 @@ events.on("exit", function () {
   clipboard.removePrimaryClipChangedListener(Listener);
 });
 setInterval(() => { }, 1000);
-
-function encryptString(data) {
-  data = java.lang.String(data).getBytes();
-  return base64Encode(data);
-}
-
-function base64Encode(r) {
-  var r = android.util.Base64.encodeToString(r, android.util.Base64.NO_WRAP);
-  return r;
-}
