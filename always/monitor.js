@@ -38,6 +38,7 @@ function analyzeMail(notification) {
   let autoAlarm = "[闹钟]";
 
   let title = notification.getText();
+  utils.toast_console("通知文本: " + title);
   // 如果收到了邮件，并且 title 有值
   if ("com.tencent.androidqqmail" == notification.getPackageName() && title) {
     // 邮件标题带有 [自动] 表示有应用忘记打卡了
@@ -60,12 +61,13 @@ function analyzeMail(notification) {
  */
 function analyzeMessage(notification) {
   // 短信发送者的号码
-  let phoneNumber = "10655960068100456740";
-
+  let phoneNumber = ["10655960068100456740", "10655025713034448954"];
   // 10655960068100456740: 【上汽云计算】您的手机验证码为657361,有效时间2分钟。
   let tickerText = notification.tickerText;
+  utils.toast_console("通知摘要: " + tickerText);
   // 如果收到了短信，并且 tickerText 有值，并且是设置的手机号发送的短信
-  if ("com.android.mms" == notification.getPackageName() && tickerText && tickerText.indexOf(phoneNumber) != -1) {
+  if ("com.android.mms" == notification.getPackageName() && tickerText
+      && (tickerText.indexOf(phoneNumber[0]) != -1) || tickerText.indexOf(phoneNumber[1])) {
     let number = tickerText.match(/您的手机验证码为(\d+),有效时间2分钟。/);
     let value = number[1].toString();
     utils.toast_console("获取的验证码为：" + value);

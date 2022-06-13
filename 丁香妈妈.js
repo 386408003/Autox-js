@@ -25,27 +25,14 @@ const win = floaty.window(
 );
 // 组件找不到重试次数，默认 5 次
 const maxRetryTimes = 5;
-// 程序所有页面枚举
-const AppPage = {
-  MAIN_PAGE: 1,
-  COURSE_PAGE: 2,
-  MY_CLOCKIN_PAGE: 3,
-  ALL_COURSE_PAGE: 4,
-  HUIBEN_TYPE_DETAIL_PAGE: 5,
-  HUIBEN_DETAIL_PAGE: 6,
-  COURSE_TYPE_DETAIL_PAGE: 7,
-  COURSE_DETAIL_PAGE: 8,
-  NOTIN_APP_PAGE: 9
+// 组件类型枚举
+const COMPONENT_TYPE = {
+  COMP_ID: 1,
+  COMP_TEXT: 2,
+  COMP_DESC: 3
 }
-// 所有打卡的课程
-const allCourseName = [
-  ["0~6 岁绘本早教馆"],
-  ["百科认知童谣", "海浪"],
-  ["动物认知童谣", "猎豹"],
-  ["生活认知童谣", "厨房  "],
-  ["身体认知童谣", "头发 "],
-  ["食物认知童谣", "强壮猪肝", "红肉"]
-];
+// 打卡的课程
+const courseName = "0～6 岁线上绘本馆";
 
 /* --------版本 v0.06 根据个人情况修改以上内容---------- */
 
@@ -71,6 +58,7 @@ beginClockIn();
  * 打卡主方法
  */
 function beginClockIn() {
+  // 打开APP
   launchApp("丁香妈妈");
   sleep(SHORT_TIME * 2);
 
@@ -79,260 +67,50 @@ function beginClockIn() {
     id("close_dialog").findOnce().click();
   }
 
-  // 根据此标志判断打卡是否完成
-  let finish_mark = false;
-  // 自动判断所属页面并进行打卡
-  let maxClockRetryTimes = maxRetryTimes;
-  while (maxClockRetryTimes--) {
-    if (switchPageAuto()) {
-      finish_mark = true;
-      break;
-    }
-  }
-  if (finish_mark) {
-    // 打卡成功
-    utils.toast_console("所有课程已打卡完毕！", true);
-    utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
-    sleep(SHORT_TIME);
-  } else {
-    utils.toast_console("未打卡完毕！");
-  }
-  // 关闭 APP
-  closeApp();
-}
-
-/**
- * 自动判断当前所在页面并纠正程序异常
- * @returns 返回 true 打卡成功，其他情况重试
- */
-function switchPageAuto() {
-  // 根据所处页面做相应处理
-  let currentPage = getCurrentPage();
-  utils.toast_console("当前所处页面代码为：" + currentPage);
-  switch (currentPage) {
-    case AppPage.MAIN_PAGE:
-      break;
-    case AppPage.COURSE_PAGE:
-      break;
-    case AppPage.MY_CLOCKIN_PAGE:
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.ALL_COURSE_PAGE:
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.HUIBEN_TYPE_DETAIL_PAGE:
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.HUIBEN_DETAIL_PAGE:
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.COURSE_TYPE_DETAIL_PAGE:
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.COURSE_DETAIL_PAGE:
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      back();
-      sleep(NANO_TIME);
-      break;
-    case AppPage.NOTIN_APP_PAGE:
-    default:
-      launchApp("丁香妈妈");
-      sleep(LONG_TIME);
-      return switchPageAuto();
-  }
-
   // 点击导航栏 课程 一栏
   if (findUntilClick(id("com.dxy.gaia:id/main_course"))) {
-    // 计算我的打卡的位置进行点击
-    let myClockBounds = id("com.dxy.gaia:id/home_hot_zone_image_container").findOnce().bounds();
-    let myClockX = myClockBounds.left + (myClockBounds.right - myClockBounds.left) / 10;
-    let myClockY = myClockBounds.top + (myClockBounds.bottom - myClockBounds.top) / 4;
-    utils.toast_console("我的打卡计算位置为：" + myClockX + ", " + myClockY);
-    click(myClockX, myClockY);
+    // 计算我的我的课程位置进行点击
+    clickNotClickable(COMPONENT_TYPE.COMP_TEXT, "我的课程");
     sleep(SHORT_TIME);
   } else {
     utils.toast_console("未找到课程，请检查网络！", true);
     return false;
   }
+  // 播放课程
+  playCourse(courseName)
+  
+  // 打卡成功
+  utils.toast_console("所有课程已打卡完毕！", true);
+  utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
+  sleep(SHORT_TIME);
 
-  // 点击 全部课程 按钮
-  if (findUntilClick(text("全部课程"))) {
-    // 循环所有课程开始打卡
-    for (let i = 0; i < allCourseName.length; i++) {
-      try {
-        if (playCourse(allCourseName[i])) {
-          utils.toast_console(allCourseName[i][0] + "课程打卡完毕！");
-        } else {
-          utils.toast_console(allCourseName[i][0] + "课程打卡失败，请检查课程名称！");
-          return false;
-        }
-      } catch (e) {
-        utils.toast_console(allCourseName[i][0] + "课程打卡异常！");
-        return false;
-      }
-    }
-    return true;
-  } else {
-    utils.toast_console("未找到全部课程，请确认是否登陆！", true);
-    return false;
-  }
-}
-
-/**
- * 根据页面元素判断当前所属页面
- * @returns 当前所属页面
- */
-function getCurrentPage() {
-  if (id("com.dxy.gaia:id/home_btn_search").exists()) {
-    return AppPage.MAIN_PAGE;
-  } else if (id("com.dxy.gaia:id/course_search").exists()) {
-    return AppPage.COURSE_PAGE;
-  } else if (text("全部课程").exists()) {
-    return AppPage.MY_CLOCKIN_PAGE;
-  } else if (text("补卡道具：").exists()) {
-    return AppPage.ALL_COURSE_PAGE;
-  } else if (id("com.dxy.gaia:id/story_book_image_item").exists()) {
-    return AppPage.HUIBEN_TYPE_DETAIL_PAGE;
-  } else if (text("绘本详情").exists()) {
-    return AppPage.HUIBEN_DETAIL_PAGE;
-  } else if (id("com.dxy.gaia:id/iv_column_logo").exists()) {
-    return AppPage.COURSE_TYPE_DETAIL_PAGE;
-  } else if (text("请朋友学").exists()) {
-    return AppPage.COURSE_DETAIL_PAGE;
-  } else {
-    return AppPage.NOTIN_APP_PAGE;
-  }
+  // 关闭 APP
+  closeApp();
 }
 
 /**
  * 播放课程
- * @param {Array} courseNameArray [课程类型, 课程名字, 课程上级菜单名字]
+ * @param {*} courseName 课程名字
  * @returns 当前课程打卡是否成功
  */
-function playCourse(courseNameArray) {
-  let [courseType, courseName, parentName] = courseNameArray;
-  utils.toast_console(courseType + "：开始打卡！");
-  let component = text(courseType).findOnce();
-  // 课程名字错误导致打卡失败
-  if (component == null) {
-    return false;
-  }
-  // 判断本次是否已打卡
-  let componentParent = component.parent().parent().parent();
-  let childCount = componentParent.childCount();
-  if (componentParent.child(childCount-1).text() == "今日已打卡") {
-    utils.toast_console(courseType + "：今日已打卡！");
-    return true;
-  }
-  // 判断课程是否已全部打卡完成
-  if (componentParent.child(childCount-1).text() == "已完成") {
-    utils.toast_console(courseType + "：打卡已完成，无需打卡！");
-    return true;
-  }
-  component.click();
+function playCourse(courseName) {
+  // 点击相关课程
+  clickNotClickable(COMPONENT_TYPE.COMP_TEXT, courseName);
   sleep(SHORT_TIME);
   // 关闭广告弹窗
   while (id("close_dialog").exists()) {
     id("close_dialog").findOnce().click();
   }
-  // courseName 没有值，即传了一个参数
-  if (!courseName) {
-    // 绘本课程左边图片组件
-    let px = id("com.dxy.gaia:id/story_book_image_item").findOnce().bounds().centerX();
-    let py = id("com.dxy.gaia:id/story_book_image_item").findOnce().bounds().centerY();
-    click(px, py);
-    sleep(SHORT_TIME);
-    // 关闭首次操作提示框
-    while (id("com.dxy.gaia:id/tv_skip").exists()) {
-      id("com.dxy.gaia:id/tv_skip").findOnce().click();
-    }
-    updateWindowTime(PLAY_COURSE_TIME * 3 / 1000);
-    sleep(PLAY_COURSE_TIME * 3);
-    utils.toast_console(courseType + "：打卡结束！");
-    // 返回选择课程页面
-    switchCourse();
-    return true;
+  // 绘本课程左边图片组件
+  clickNotClickable(COMPONENT_TYPE.COMP_ID, "com.dxy.gaia:id/story_book_image_item");
+  sleep(SHORT_TIME);
+  // 关闭首次操作提示框
+  while (id("com.dxy.gaia:id/tv_skip").exists()) {
+    id("com.dxy.gaia:id/tv_skip").findOnce().click();
   }
-  // parentName 没有值，说明没有上下级课程关系
-  let maxSwipeRetryTimes = maxRetryTimes;
-  if (!parentName) {
-    // 尝试查找课程名字是否存在，不存在就下拉
-    while (!text(courseName).exists() && maxSwipeRetryTimes--) {
-      swipe(width / 2, height * 3 / 5, width / 2, height + height / 2, NANO_TIME);
-      sleep(NANO_TIME);
-      utils.toast_console("下拉 " + (maxRetryTimes - maxSwipeRetryTimes) + " 次，再次查找课程！");
-    }
-  } else {
-    maxSwipeRetryTimes = maxSwipeRetryTimes + 1;
-    // 尝试查找课程名字是否存在
-    while (!text(courseName).exists() && maxSwipeRetryTimes--) {
-      // 判断父级是否存在
-      while (!text(parentName).exists() && maxSwipeRetryTimes--) {
-        swipe(width / 2, height * 3 / 5, width / 2, height + height / 2, NANO_TIME);
-        sleep(NANO_TIME);
-        utils.toast_console("下拉 " + (maxRetryTimes - maxSwipeRetryTimes) + " 次，再次查找课程！");
-      }
-      if (!text(courseName).exists()) {
-        let px = text(parentName).findOnce().bounds().centerX();
-        let py = text(parentName).findOnce().bounds().centerY();
-        click(px, py);
-        sleep(SHORT_TIME);
-      }
-    }
-  }
-  // 点击找到的课程
-  let ax = text(courseName).findOnce().bounds().centerX();
-  let ay = text(courseName).findOnce().bounds().centerY();
-  click(ax, ay);
-  sleep(SHORT_TIME);
-  // 点击播放按钮
-  let playButtonBounds = packageName("com.dxy.gaia").className("android.view.View").clickable(false).depth(10).indexInParent(1).findOnce().bounds();
-  let playButtonX = playButtonBounds.left + (playButtonBounds.right - playButtonBounds.left) / 8;
-  let playButtonY = playButtonBounds.bottom - (playButtonBounds.bottom - playButtonBounds.top) / 8;
-  utils.toast_console("播放按钮计算位置为：" + playButtonX + ", " + playButtonY);
-  click(playButtonX, playButtonY);
-  updateWindowTime(PLAY_COURSE_TIME / 1000);
-  sleep(PLAY_COURSE_TIME);
-  utils.toast_console(courseType + "：打卡结束！");
-  // 返回选择课程页面
-  switchCourse();
-  return true;
-}
-
-/**
- * 点击两下返回，切换课程
- */
-function switchCourse() {
-  back();
-  sleep(SHORT_TIME);
-  back();
-  sleep(SHORT_TIME);
+  updateWindowTime(PLAY_COURSE_TIME * 3 / 1000);
+  sleep(PLAY_COURSE_TIME * 3 / 1000);
+  utils.toast_console(courseName + "：打卡结束！");
 }
 
 /**
@@ -353,6 +131,31 @@ function findUntilClick(component) {
   } else {
     return false;
   }
+}
+
+/**
+ * 通过选择组件的类型和组件名字点击不可点击的组件
+ * @param {*} type 组件选择类型
+ * @param {*} componentName 组件名字
+ */
+function clickNotClickable(type, componentName) {
+  let component = null;
+  switch(type) {
+    case COMPONENT_TYPE.COMP_ID:
+      component = id(componentName).findOnce().bounds();
+      break;
+    case COMPONENT_TYPE.COMP_TEXT:
+      component = text(componentName).findOnce().bounds();
+      break;
+    case COMPONENT_TYPE.COMP_DESC:
+      component = desc(componentName).findOnce().bounds();
+      break;
+    default:
+      utils.toast_console("组件类型错误！", true);
+  }
+  let pointX = component.centerX();
+  let pointY = component.centerY();
+  click(pointX, pointY);
 }
 
 /**
@@ -435,8 +238,11 @@ function keyDetector() {
  * 关闭应用
  */
 function closeApp() {
-  let packageName = currentPackage();
+  // let packageName = currentPackage();
+  // 丁香妈妈
+  let packageName = "com.dxy.gaia";
   app.openAppSetting(packageName);
+  sleep(LONG_TIME);
   let appName = app.getAppName(packageName);
   text(appName).waitFor();
   let is_sure = textMatches(/(.*强.*|.*停.*|.*结.*)/).findOnce();
