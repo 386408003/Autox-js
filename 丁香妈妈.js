@@ -7,10 +7,10 @@ var utils = require(storage.get("rootPath") + "utils/utils.js");
 // 解锁屏幕
 utils.unlock(storage.get("password"));
 
-// 设置屏幕常亮时间，默认 45 分钟
-const SCREEN_DIM_TIME = 45 * 60 * 1000;
-// 播放课程时间，默认 5.5 分钟
-const PLAY_COURSE_TIME = (5 * 60 + 30) * 1000;
+// 设置屏幕常亮时间，默认 15 分钟
+const SCREEN_DIM_TIME = 15 * 60 * 1000;
+// 播放课程时间，默认 11 分钟
+const PLAY_COURSE_TIME = (11 * 60) * 1000;
 // 长等待时间常量，用于应用启动等较长时间等待，如果网络不好或手机卡请增加此数值，默认 5 秒
 const LONG_TIME = 5000;
 // 短等待时间常量，用于按钮点击、返回等每步操作后的等待，如果网络不好或手机卡请增加此数值，默认 3 秒
@@ -31,8 +31,6 @@ const COMPONENT_TYPE = {
   COMP_TEXT: 2,
   COMP_DESC: 3
 }
-// 打卡的课程
-const courseName = "0～6 岁线上绘本馆";
 
 /* --------版本 v0.06 根据个人情况修改以上内容---------- */
 
@@ -59,7 +57,8 @@ beginClockIn();
  */
 function beginClockIn() {
   // 打开APP
-  launchApp("丁香妈妈");
+  let appName = "丁香妈妈";
+  launchApp(appName);
   sleep(SHORT_TIME * 2);
 
   // 关闭广告弹窗（有时有两个弹窗）
@@ -77,15 +76,19 @@ function beginClockIn() {
     return false;
   }
   // 播放课程
-  playCourse(courseName)
-  
-  // 打卡成功
-  utils.toast_console("所有课程已打卡完毕！", true);
-  utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
-  sleep(SHORT_TIME);
+  playCourse("0～6 岁线上绘本馆");
+  back();
 
-  // 关闭 APP
-  closeApp();
+  if (isFinish()) {
+    // 打卡成功
+    utils.toast_console("所有课程已打卡完毕！", true);
+    utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
+    sleep(SHORT_TIME);
+    // 关闭 APP
+    closeApp();
+  } else {
+    utils.toast_console("打卡未完毕！");
+  }
 }
 
 /**
@@ -108,8 +111,8 @@ function playCourse(courseName) {
   while (id("com.dxy.gaia:id/tv_skip").exists()) {
     id("com.dxy.gaia:id/tv_skip").findOnce().click();
   }
-  updateWindowTime(PLAY_COURSE_TIME * 3 / 1000);
-  sleep(PLAY_COURSE_TIME * 3 / 1000);
+  updateWindowTime(PLAY_COURSE_TIME / 1000);
+  sleep(PLAY_COURSE_TIME);
   utils.toast_console(courseName + "：打卡结束！");
 }
 
@@ -126,11 +129,27 @@ function findUntilClick(component) {
   }
   if (component.exists()) {
     component.findOnce().click();
-    sleep(LONG_TIME);
+    sleep(SHORT_TIME);
     return true;
   } else {
     return false;
   }
+}
+
+/**
+ * 检测是否已完成打卡
+ * @param {*} times 检测次数，默认 maxRetryTimes 次
+ * @returns true/false
+ */
+function isFinish(times) {
+  let maxCheckTimes = times || maxRetryTimes;
+  let isFinish = text("今日已打卡").exists();
+  while (!isFinish && maxCheckTimes--) {
+    sleep(NANO_TIME * 2);
+    isFinish = text("今日已打卡").exists();
+  }
+  // 已完成打卡
+  return isFinish;
 }
 
 /**
