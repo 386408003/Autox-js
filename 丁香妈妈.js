@@ -61,6 +61,11 @@ function beginClockIn() {
   launchApp(appName);
   sleep(SHORT_TIME * 2);
 
+  // 关闭升级弹窗
+  while (id("com.dxy.gaia:id/close_btn").exists()) {
+    id("com.dxy.gaia:id/close_btn").findOnce().click();
+  }
+  sleep(SHORT_TIME);
   // 关闭广告弹窗（有时有两个弹窗）
   while (id("close_dialog").exists()) {
     id("close_dialog").findOnce().click();
@@ -75,6 +80,7 @@ function beginClockIn() {
     utils.toast_console("未找到课程，请检查网络！", true);
     return false;
   }
+
   // 播放课程
   playCourse("0～6 岁线上绘本馆");
   back();
@@ -104,6 +110,18 @@ function playCourse(courseName) {
   while (id("close_dialog").exists()) {
     id("close_dialog").findOnce().click();
   }
+  
+  // 打卡后，再次进入校验是否已打卡
+  if (isFinish()) {
+    // 打卡成功
+    utils.toast_console("所有课程已打卡完毕！", true);
+    utils.sendMail("丁香妈妈", "所有课程都已打卡完成！", "[打卡完成]");
+    sleep(SHORT_TIME);
+    // 关闭 APP
+    closeApp();
+    return;
+  }
+
   // 绘本课程左边图片组件
   clickNotClickable(COMPONENT_TYPE.COMP_ID, "com.dxy.gaia:id/story_book_image_item");
   sleep(SHORT_TIME);

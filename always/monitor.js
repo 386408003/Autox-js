@@ -89,7 +89,7 @@ function analyzeMessage(notification) {
 }
 
 /**
- * 停掉除了本脚本以及 always 目录以外的正在运行的脚本
+ * 判断脚本是否存活
  */
 function isAlive() {
   // 获取全部正在运行的脚本引擎
